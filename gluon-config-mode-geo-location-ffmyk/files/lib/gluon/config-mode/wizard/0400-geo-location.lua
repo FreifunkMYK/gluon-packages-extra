@@ -19,7 +19,7 @@ function M.section(form)
         var longitude = 7.593889;
 
         function showMap() {
-            if (typeof OpenLayers === 'object') {
+            if (typeof OpenLayers === 'object' &amp;&amp; document.getElementById("cbid.wizard.1._longitude") !== null) {
                 document.getElementById("locationPickerMap").style.display="block";
 
                 var proj4326 = new OpenLayers.Projection("EPSG:4326");
@@ -59,6 +59,9 @@ function M.section(form)
                         document.getElementById("cbid.wizard.1._latitude").value=lonlat1.lat;
                         markers.clearMarkers(); 
                         markers.addMarker(new OpenLayers.Marker(lonlat));
+
+			document.getElementById("cbid.wizard.1._longitude").className = document.getElementById("cbid.wizard.1._longitude").className.replace(/ cbi-input-invalid/g, '');
+			document.getElementById("cbid.wizard.1._latitude").className = document.getElementById("cbid.wizard.1._latitude").className.replace(/ cbi-input-invalid/g, '');
 
                         cbi_d_update("cbid.wizard.1._longitude");
                         cbi_d_update("cbid.wizard.1._latitude");
