@@ -22,8 +22,9 @@ Again: The map will only be displayed if the client used for configuration is ab
 ## Credits
 * Florian Knodt of Freifunk-MYK
 
-##Notes
+## Notes
 * On PCs not connected to the internet it might trigger an error or look like the page hasn't finished loading
+* Currently a pre-[minified](https://jscompress.com/) version of osm.js is supplied in the files/-folder. The original code can be found in jssrc/
 
 ## Todo
 

@@ -23,7 +23,7 @@ The parameters ``show_qrcode`` and ``url_prefix`` are mandatory, ``url_suffix`` 
 * The [first gluon-implementation](https://github.com/freifunk-gluon/gluon/pull/613) was created by [Flip](https://github.com/Philhil) of [Freifunk Stuttgart](https://freifunk-stuttgart.de/).
 * Rewritten as a module by [Florian Knodt](https://adlerweb.info) of [Freifunk Mayen-Koblenz](https://www.freifunk-myk.de)
 
-##Notes
+## Notes
 * Currently a pre-[minified](https://jscompress.com/) version of qrcode.js is supplied in the files/-folder. The original code can be found in jssrc/
 * The code has only been tested with fastd based setups
 
