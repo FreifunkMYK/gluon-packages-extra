@@ -3,6 +3,21 @@ return function(form, uci)
 
 	local location = uci:get_first("gluon-node-info", "location")
 
+	local function show_lon()
+		if ((site.config_mode or {}).geo_location_map or {}).map_lon ~= false then
+			return site.config_mode.geo_location_map.map_lon
+		end
+		return 52.516282888
+	end
+
+	local function show_lat()
+		if ((site.config_mode or {}).geo_location_map or {}).map_lat ~= false then
+			return site.config_mode.geo_location_map.map_lat
+		end
+
+		return 13.377715945
+	end
+
 	local function show_altitude()
 		if ((site.config_mode or {}).geo_location_map or {}).show_altitude ~= false then
 			return true
@@ -19,21 +34,33 @@ return function(form, uci)
 		return false
 	end
 
+	local function show_olurl()
+		if ((site.config_mode or {}).geo_location_map or {}).olurl ~= false then
+			return site.config_mode.geo_location_map.olurl
+		end
+
+		return 'http://dev.openlayers.org/OpenLayers.js'
+	end
+
 	local text = translate(
-		'If you want the location of your node to ' ..
-		'be displayed on the map, you can enter its coordinates here.' ..
-		'If your PC is connected to the internet you can also click on the map displayed below.'
+		'If you want the location of your node to be displayed on the map, you can ' ..
+		'enter its coordinates here. If your PC is connected to the internet you ' ..
+		'can also click on the map displayed below'
 	)
 	if show_altitude() then
 		text = text .. ' ' .. translate("gluon-config-mode:altitude-help")
 	end
 
-	if show_map() then
+	if (show_map() and show_olurl()) then
+		oljs = show_olurl()
 		text = text .. [[
 			<div id="locationPickerMap" style="width:100%; height:300px; display: none;"></div>
-			<script src="http://firmware.freifunk-myk.de/.static/ol/OpenLayers.js"></script>
-			<script src="<%=media%>/osm.js"></script>
-			<script>body.addEventListener("load", showMap, false);</script>
+			<script src="]] .. oljs .. [["></script>
+			<script src="/static/gluon/osm.js"></script>
+			<script>
+				var latitude=]] .. show_lon() .. ",longitude=" .. show_lat() .. [[;
+				document.addEventListener("DOMContentLoaded", showMap, false);
+			</script>
 		]]
 	end
 

@@ -1,82 +1,96 @@
-return function(form, uci)
-	local site = require 'gluon.site_config'
+local uci = require("simple-uci").cursor()
+local lutil = require "gluon.web.util"
 
-	local location = uci:get_first("gluon-node-info", "location")
+local site = require 'gluon.site_config'
+local sysconfig = require 'gluon.sysconfig'
+local util = require "gluon.util"
 
-	local function show_altitude()
-		if ((site.config_mode or {}).geo_location_ffmyk or {}).show_altitude ~= false then
-			return true
-		end
+local pretty_hostname = require 'pretty_hostname'
 
-		return uci:get_bool("gluon-node-info", location, "altitude")
-	end
+local meshvpn_enabled = uci:get_bool("fastd", "mesh_vpn", "enabled")
 
-	local function show_map()
-		if ((site.config_mode or {}).geo_location_ffmyk or {}).show_map ~= false then
-			return true
-		end
+local hostname = pretty_hostname.get(uci)
+local contact = uci:get_first("gluon-node-info", "owner", "contact")
 
-		return false
-	end
+local pubkey
+local msg
 
-	local text = translate(
-		'If you want the location of your node to ' ..
-		'be displayed on the map, you can enter its coordinates here.' ..
-		'If your PC is connected to the internet you can also click on the map displayed below.'
-	)
-	if show_altitude() then
-		text = text .. ' ' .. translate("gluon-config-mode:altitude-help")
-	end
-
-	if show_map() then
-		text = text .. [[
-			<div id="locationPickerMap" style="width:100%; height:300px; display: none;"></div>
-			<script src="http://firmware.freifunk-myk.de/.static/ol/OpenLayers.js"></script>
-			<script src="<%=media%>/osm.js"></script>
-			<script>body.addEventListener("load", showMap, false);</script>
-		]]
-	end
-
-	local s = form:section(Section, nil, text)
-
-	local o
-
-	local share_location = s:option(Flag, "location", translate("Show node on the map"))
-	share_location.default = uci:get_bool("gluon-node-info", location, "share_location")
-	function share_location:write(data)
-		uci:set("gluon-node-info", location, "share_location", data)
-	end
-
-	o = s:option(Value, "latitude", translate("Latitude"), translatef("e.g. %s", "50.364931"))
-	o.default = uci:get("gluon-node-info", location, "latitude")
-	o:depends(share_location, true)
-	o.datatype = "float"
-	function o:write(data)
-		uci:set("gluon-node-info", location, "latitude", data)
-	end
-
-	o = s:option(Value, "longitude", translate("Longitude"), translatef("e.g. %s", "7.606417"))
-	o.default = uci:get("gluon-node-info", location, "longitude")
-	o:depends(share_location, true)
-	o.datatype = "float"
-	function o:write(data)
-		uci:set("gluon-node-info", location, "longitude", data)
-	end
-
-	if show_altitude() then
-		o = s:option(Value, "altitude", translate("gluon-config-mode:altitude-label"), translatef("e.g. %s", "11.51"))
-		o.default = uci:get("gluon-node-info", location, "altitude")
-		o:depends(share_location, true)
-		o.datatype = "float"
-		o.optional = true
-		function o:write(data)
-			if data then
-				uci:set("gluon-node-info", location, "altitude", data)
-			else
-				uci:delete("gluon-node-info", location, "altitude")
-			end
-		end
-	end
-
-	return {'gluon-node-info'}
+local function get_prefix()
+        if ((site.config_mode or {}).qrcode or {}).url_prefix ~= false then
+                return site.config_mode.qrcode.url_prefix
+        else
+                return false
+        end
 end
+
+local function get_suffix()
+        if ((site.config_mode or {}).qrcode or {}).url_suffix ~= false then
+                return site.config_mode.qrcode.url_suffix
+        else
+                return ''
+        end
+end
+
+local function is_active()
+        if ((site.config_mode or {}).qrcode or {}).show_qrcode ~= false then
+                return true
+        else
+                return false
+        end
+end
+
+local function toUnicode(a)
+        a1,a2,a3,a4 = a:byte(1, -1)
+        ans = string.format ("%%%02X", a1)
+        n = a2
+        if (n) then
+                ans = ans .. string.format ("%%%02X", n)
+        end
+        n = a3
+        if (n) then
+                ans = ans .. string.format ("%%%02X", n)
+        end
+        n = a4
+        if (n) then
+                ans = ans .. string.format ("%%%02X", n)
+        end
+        return ans
+end
+
+local function urlencode(str)
+        if (str) then
+                str = string.gsub (str, "\n", "\r\n")
+                str = string.gsub (str, "([^%w ])", toUnicode)
+                str = string.gsub (str, " ", "+")
+        end
+        return str
+end
+
+local prefix = get_prefix()
+
+if (meshvpn_enabled and is_active and prefix ~= false) then
+
+        pubkey = util.trim(lutil.exec("/etc/init.d/fastd show_key mesh_vpn"))
+        msg = [[
+        <script src="<%=media%>/qrcode.js"></script>
+        <script>/* <![CDATA[ */
+                function chkQr() {
+                        if(document.getElementById("qrdiv")) {
+                                new QRCode(document.getElementById("qrdiv"), "]] .. prefix .. "mac=" .. urlencode(sysconfig.primary_mac) .. "&key=" .. urlencode(pubkey) .. "&host=" .. urlencode(hostname) .. "&contact="
+	if(contact) then
+		msg = msg .. urlencode(contact);
+	end
+	msg = msg .. [[");
+                        }
+                }
+        ]] .. "/* ]]>" .. [[ */</script>
+        <script>document.addEventListener("DOMContentLoaded", chkQr, false);</script>
+        <br/><div id="qrdiv"></div>
+        ]];
+end
+
+if not msg then return end
+
+renderer.render_string(msg)
+
+

@@ -5,7 +5,7 @@ PKG_VERSION:=1
 
 PKG_BUILD_DIR := $(BUILD_DIR)/$(PKG_NAME)
 
-include $(INCLUDE_DIR)/package.mk
+include $(TOPDIR)/../package/gluon.mk
 
 define Package/gluon-config-mode-qrcode
   SECTION:=gluon
@@ -13,7 +13,6 @@ define Package/gluon-config-mode-qrcode
   DEPENDS:=+
   TITLE:=Display node registration link as QR-Code 
 endef
-
 
 define Package/gluon-legacy/description
 	Display node registration link as QR-Code 
