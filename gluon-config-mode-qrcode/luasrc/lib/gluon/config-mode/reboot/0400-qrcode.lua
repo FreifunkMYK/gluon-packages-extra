@@ -1,7 +1,7 @@
 local uci = require("simple-uci").cursor()
 local lutil = require "gluon.web.util"
 
-local site = require 'gluon.site_config'
+local site = require 'gluon.site'
 local sysconfig = require 'gluon.sysconfig'
 local util = require "gluon.util"
 
@@ -92,5 +92,3 @@ end
 if not msg then return end
 
 renderer.render_string(msg)
-
-

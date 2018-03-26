@@ -1,5 +1,5 @@
 return function(form, uci)
-	local site = require 'gluon.site_config'
+	local site = require 'gluon.site'
 
 	local location = uci:get_first("gluon-node-info", "location")
 
