@@ -1,8 +1,6 @@
 #!/bin/sh
 
-BIND=$(uci get button-bind.wifi.function)
-
-LED_STATE=/tmp/wifi-button-status
+BIND=$(uci -q get button-bind.wifi.function)
 
 case "$BIND" in
 1) # no function
@@ -12,22 +10,35 @@ if [ "$ACTION" = "pressed" ]; then
 	/sbin/wifi
 fi
 ;;
-3) # LEDs on/off		
-if [ ! -f $LED_STATE ]; then touch $LED_STATE; fi	
+3) # LEDs ON/OFF
+if [ "$ACTION" = "pressed" ]; then
+	LED_STATE=/tmp/wifi-button-status
+	if [ ! -f $LED_STATE ]; then echo 0>$LED_STATE; fi
+	if [ "$(cat $LED_STATE)" = "0" ]; then
+		/etc/init.d/led start
+		echo "1">$LED_STATE
+	else
+		for i in /sys/class/leds/*; do
+			echo 0 > "$i"/brightness
+		done
+		/etc/init.d/led stop
+		echo "0">$LED_STATE
+	fi
+fi
+;;
+4) # LEDs OFF, ON only on hold
 if [ "$ACTION" = "pressed" ]; then
 	/etc/init.d/led start
-	echo "1" > $LED_STATE
 else
 	for i in /sys/class/leds/*; do
 		echo 0 > "$i"/brightness
 	done
 	/etc/init.d/led stop
-	echo "0" > $LED_STATE
 fi
 ;;
-4) # Client on/off
+5) # Client ON/OFF
 if [ "$ACTION" = "pressed" ]; then
-	DISABLED=$(uci get wireless.client_radio0.disabled)
+	DISABLED=$(uci -q get wireless.client_radio0.disabled)
 	if [ "$DISABLED" = "0" ]; then
 		uci set wireless.client_radio0.disabled=1
 	else
@@ -37,7 +48,18 @@ if [ "$ACTION" = "pressed" ]; then
 	wifi
 fi
 ;;
-*) # Default, WLAN on/off
+6) # mesh-VPN OFF
+if [ "$ACTION" = "pressed" ]; then
+	pid="$(pgrep -f mesh-vpn-pause.sh|xargs)"
+	if [ "$pid" == "" ]; then
+		/lib/gluon/button-bind/mesh-vpn-pause.sh &
+	else
+		kill -HUP "$pid"
+		/etc/init.d/fastd stop && /etc/init.d/fastd start
+	fi
+fi
+;;
+*) # 0) Default, WLAN ON/OFF
 /etc/rc.button/rfkill.owrt 
 ;;
 esac
