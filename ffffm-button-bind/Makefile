@@ -13,7 +13,7 @@ define Package/$(PKG_NAME)
   CATEGORY:=Gluon
   MAINTAINER:=Freifunk Frankfurt
   TITLE:=Button feature set binding
-  DEPENDS:=+gluon-luci-admin
+  DEPENDS:=+gluon-web-admin
 endef
 
 define Package/gluon-legacy/description
