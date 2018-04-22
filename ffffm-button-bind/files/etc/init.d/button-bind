@@ -4,7 +4,7 @@ START=97
 
 start_service() {
 	local FUNCTION=$(uci get button-bind.wifi.function)
-	if [ "${FUNCTION}" = 3 ]
+	if [ "${FUNCTION}" = 3 ] || [ "${FUNCTION}" = 4 ]
 	then
 		for i in /sys/class/leds/* ; do echo 0 > "$i"/brightness ; done
 	fi
