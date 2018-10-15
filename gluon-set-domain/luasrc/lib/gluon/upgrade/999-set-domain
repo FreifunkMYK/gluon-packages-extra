@@ -1,0 +1,13 @@
+#!/usr/bin/lua
+
+local site = require('gluon.site_config')
+local uci = require('simple-uci').cursor()
+local fs = require('nixio.fs')
+
+if not fs.stat('/etc/config/gluon') then
+	io.open('/etc/config/gluon', 'w+'):close()
+end
+
+uci:section('gluon', 'core', 'core', nil)
+uci:set('gluon', 'core', 'domain', site.site_code)
+uci:commit('gluon')
