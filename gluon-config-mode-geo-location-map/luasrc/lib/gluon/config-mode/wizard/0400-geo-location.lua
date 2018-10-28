@@ -4,42 +4,23 @@ return function(form, uci)
 	local location = uci:get_first("gluon-node-info", "location")
 
 	local function show_lon()
-		if ((site.config_mode or {}).geo_location_map or {}).map_lon ~= false then
-			return site.config_mode.geo_location_map.map_lon
-		end
-		return 52.516282888
+        return site.config_mode.geo_location_map.map_lon(52.516282888)
 	end
 
 	local function show_lat()
-		if ((site.config_mode or {}).geo_location_map or {}).map_lat ~= false then
-			return site.config_mode.geo_location_map.map_lat
-		end
-
-		return 13.377715945
+			return site.config_mode.geo_location_map.map_lat(13.377715945)
 	end
 
 	local function show_altitude()
-		if ((site.config_mode or {}).geo_location_map or {}).show_altitude ~= false then
-			return true
-		end
-
-		return uci:get_bool("gluon-node-info", location, "altitude")
+		return site.config_mode.geo_location_map.show_altitude(false)
 	end
 
 	local function show_map()
-		if ((site.config_mode or {}).geo_location_map or {}).show_map ~= false then
-			return true
-		end
-
-		return false
+		return site.config_mode.geo_location_map.show_map(false)
 	end
 
 	local function show_olurl()
-		if ((site.config_mode or {}).geo_location_map or {}).olurl ~= false then
-			return site.config_mode.geo_location_map.olurl
-		end
-
-		return 'http://dev.openlayers.org/OpenLayers.js'
+		return site.config_mode.geo_location_map.olurl('http://dev.openlayers.org/OpenLayers.js')
 	end
 
 	local text = translate(
