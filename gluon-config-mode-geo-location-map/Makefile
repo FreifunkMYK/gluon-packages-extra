@@ -45,8 +45,8 @@ endef
 
 define Package/gluon-config-mode-geo-location-map/install
 	$(CP) $(PKG_BUILD_DIR)/luadest/* $(1)/
-	$(INSTALL_DIR) $(1)/lib/gluon/web/www/static/gluon/
-	$(INSTALL_DATA) $(PKG_BUILD_DIR)/osm.js $(1)/lib/gluon/web/www/static/gluon/
+	$(INSTALL_DIR) $(1)/lib/gluon/config-mode/www/static/gluon/
+	$(INSTALL_DATA) $(PKG_BUILD_DIR)/osm.js $(1)/lib/gluon/config-mode/www/static/gluon/
 	$(call GluonInstallI18N,gluon-config-mode-geo-location-map,$(1))
 endef
 
