@@ -1,5 +1,4 @@
 local uci = require("simple-uci").cursor()
-local lutil = require "gluon.web.util"
 
 local site = require 'gluon.site'
 local sysconfig = require 'gluon.sysconfig'
@@ -16,27 +15,15 @@ local pubkey
 local msg
 
 local function get_prefix()
-        if ((site.config_mode or {}).qrcode or {}).url_prefix ~= false then
-                return site.config_mode.qrcode.url_prefix
-        else
-                return false
-        end
+        return site.config_mode.qrcode.url_prefix(false)
 end
 
 local function get_suffix()
-        if ((site.config_mode or {}).qrcode or {}).url_suffix ~= false then
-                return site.config_mode.qrcode.url_suffix
-        else
-                return ''
-        end
+        return site.config_mode.qrcode.url_suffix('')
 end
 
 local function is_active()
-        if ((site.config_mode or {}).qrcode or {}).show_qrcode ~= false then
-                return true
-        else
-                return false
-        end
+        return site.config_mode.qrcode.show_qrcode(false)
 end
 
 local function toUnicode(a)
@@ -70,17 +57,20 @@ local prefix = get_prefix()
 
 if (meshvpn_enabled and is_active and prefix ~= false) then
 
-        pubkey = util.trim(lutil.exec("/etc/init.d/fastd show_key mesh_vpn"))
+        pubkey = util.trim(util.exec("/etc/init.d/fastd show_key mesh_vpn"))
         msg = [[
-        <script src="<%=media%>/qrcode.js"></script>
+        <script src="/static/gluon-web-qrcode.js"></script>
         <script>/* <![CDATA[ */
                 function chkQr() {
                         if(document.getElementById("qrdiv")) {
-                                new QRCode(document.getElementById("qrdiv"), "]] .. prefix .. "mac=" .. urlencode(sysconfig.primary_mac) .. "&key=" .. urlencode(pubkey) .. "&host=" .. urlencode(hostname) .. "&contact="
+                                var qr = qrcode(0,'L');
+                                qr.addData("]] .. prefix .. "mac=" .. urlencode(sysconfig.primary_mac) .. "&key=" .. urlencode(pubkey) .. "&host=" .. urlencode(hostname) .. "&contact="
 	if(contact) then
 		msg = msg .. urlencode(contact);
 	end
 	msg = msg .. [[");
+                                qr.make();
+                                document.getElementById("qrdiv").innerHTML = qr.createImgTag();
                         }
                 }
         ]] .. "/* ]]>" .. [[ */</script>
