@@ -14,19 +14,5 @@ define Package/gluon-ssid-changer
   DEPENDS:=+gluon-core
 endef
 
-define Build/Prepare
-        mkdir -p $(PKG_BUILD_DIR)
-endef
-
-define Build/Configure
-endef
-
-define Build/Compile
-endef
-
-define Package/gluon-ssid-changer/install
-        $(CP) ./files/* $(1)/
-endef
-
-$(eval $(call BuildPackage,gluon-ssid-changer))
+$(eval $(call BuildPackageGluon,$(PKG_NAME)))
 
