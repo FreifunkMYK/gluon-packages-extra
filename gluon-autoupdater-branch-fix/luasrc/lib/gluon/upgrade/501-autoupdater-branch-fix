@@ -8,14 +8,14 @@ local c = uci.cursor()
 local current_branch = c:get('autoupdater', 'settings', 'branch')
 local found_branch = false
 
-for name, config in pairs(site.autoupdater.branches) do
+for name, config in pairs(site.autoupdater.branches()) do
 	if config.name == current_branch then
 		found_branch = true
 	end
 end
 
 if not found_branch then
-	c:set('autoupdater', 'settings', 'branch', site.autoupdater.branch)
+	c:set('autoupdater', 'settings', 'branch', site.autoupdater.branch())
 end
 
 c:save('autoupdater')
