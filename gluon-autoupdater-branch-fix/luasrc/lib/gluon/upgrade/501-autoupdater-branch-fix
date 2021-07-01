@@ -9,13 +9,17 @@ local current_branch = c:get('autoupdater', 'settings', 'branch')
 local found_branch = false
 
 for name, config in pairs(site.autoupdater.branches()) do
-	if config.name == current_branch then
-		found_branch = true
-	end
+    if config.name == current_branch then
+        found_branch = true
+    end
 end
 
 if not found_branch then
-	c:set('autoupdater', 'settings', 'branch', site.autoupdater.branch())
+    if current_branch == 'autoupdater' then
+        c:set('autoupdater', 'settings', 'branch', 'beta')
+    else
+        c:set('autoupdater', 'settings', 'branch', site.autoupdater.branch())
+    end
 end
 
 c:save('autoupdater')
