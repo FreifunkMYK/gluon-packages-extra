@@ -90,7 +90,8 @@ if [ "$(uci get wireguard.mesh_vpn.enabled)" == "true" ] || [ "$(uci get wiregua
 		else
 			PROTO=https
 		fi
-		gluon-wan wget -q  -O- --post-data='{"domain": "'"$SEGMENT"'","public_key": "'"$PUBLICKEY"'"}' $PROTO://broker.ffmuc.net/api/v1/wg/key/exchange
+		API_ENDPOINT=$(uci get wireguard.mesh_vpn.api_endpoint)
+		gluon-wan wget -q  -O- --post-data='{"domain": "'"$SEGMENT"'","public_key": "'"$PUBLICKEY"'"}' $PROTO://$API_ENDPOINT/api/v1/wg/key/exchange
 		
 		# Bring up the wireguard interface
 		ip link add dev $MESH_VPN_IFACE type wireguard

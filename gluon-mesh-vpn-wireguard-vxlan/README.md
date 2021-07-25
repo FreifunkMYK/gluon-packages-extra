@@ -12,6 +12,7 @@ You should use something like the following in the site.conf:
 		enabled = '1',
 		iface = 'mesh-vpn',
 		limit = '1', -- actually unused
+		api_endpoint = 'vpn.freifunk-myk.de' -- http(s)://<api_endpoint>/api/v1/wg/key/exchange
 		peers = {
 				{
 					publickey ='N9uF5Gg1B5AqWrE9IuvDgzmQePhqhb8Em/HrRpAdnlY=',
