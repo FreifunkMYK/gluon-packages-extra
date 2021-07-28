@@ -62,7 +62,7 @@ if [ "$(uci get wireguard.mesh_vpn.enabled)" == "true" ] || [ "$(uci get wiregua
 	# If we don't have a connection we try to connect
 	if [ "$CONNECTED" -ne "1" ]; then
 		logger -t checkuplink "Reconnecting ..."
-		NTP_SERVER=$(uci get system.ntp.server)
+		NTP_SERVER=$(uci get wireguard.mesh_vpn.ntp)
 		gluon-wan /usr/sbin/ntpd -n -N -S /usr/sbin/ntpd-hotplug -p $NTP_SERVER -q
 
 		# Get the number of configured peers and randomly select one

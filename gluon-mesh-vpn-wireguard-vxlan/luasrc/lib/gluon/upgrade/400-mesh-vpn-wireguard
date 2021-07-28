@@ -24,6 +24,7 @@ uci:set('gluon', 'mesh_vpn', 'enabled', mesh_enabled)
 uci:section("wireguard", "wireguard", "mesh_vpn", {
 	iface = site.mesh_vpn.wireguard.iface(),
 	limit = site.mesh_vpn.wireguard.limit(),
+	ntp = site.mesh_vpn.wireguard.ntp(),
 	enabled = mesh_enabled,
 	privatekey = privkey,
 	api_endpoint = site.mesh_vpn.wireguard.api_endpoint(),
