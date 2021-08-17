@@ -24,9 +24,9 @@ if uci:get("wireguard", "mesh_vpn", "privatekey") == nil then
 	uci:save("wireguard")
 end
 
---if not uci:get_bool("wireguard", "mesh_vpn", "enabled") then
---	os.exit(0)
---end
+if not uci:get_bool("wireguard", "mesh_vpn", "enabled") then
+	os.exit(0)
+end
 
 log('checking mesh-vpn connection')
 local wg_show = io.popen("wg show wg dump")
