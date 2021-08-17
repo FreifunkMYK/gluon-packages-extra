@@ -40,7 +40,7 @@ end
 wg_show:close()
 
 if current_peer_addr then
-	if os.execute("ping -c 1 -w 5 " .. current_peer_addr .. "%wg > /dev/null") then
+	if os.execute("ping -c 1 -w 5 " .. current_peer_addr .. "%wg > /dev/null") == 0 then
 		local gwmac = ""
 		local batctl_gwl = io.popen("batctl gwl")
 		for line in batctl_gwl:lines() do
@@ -49,7 +49,7 @@ if current_peer_addr then
 				break
 			end
 		end
-		if os.execute("batctl ping -c 5 " .. gwmac .. " &> /dev/null") then
+		if os.execute("batctl ping -c 5 " .. gwmac .. " &> /dev/null") == 0 then
 			log("connection check ok")
 			os.exit(0)
 		else
