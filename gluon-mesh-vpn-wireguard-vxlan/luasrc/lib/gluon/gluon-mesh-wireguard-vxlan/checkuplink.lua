@@ -70,7 +70,7 @@ math.randomseed(os.time())
 
 local peers = {}
 uci:foreach("wireguard", "peer", function(peer)
-	if not peer.enabled then
+	if peer.enabled ~= "1" then
 		return
 	end
 	table.insert(peers, peer)
@@ -138,7 +138,7 @@ os.execute("ip link set up dev wg")
 os.execute("ip address add " .. interface_linklocal() .. "/64 dev wg")
 
 os.execute("gluon-wan wg set wg peer " .. peer.publickey .. " persistent-keepalive 25 allowed-ips " .. peer.link_address .. "/128 endpoint " .. endpoint_addr .. ":" .. endpoint_port)
-os.execute("iptables -I INPUT 1 -i wg -m udp -p udp --dport 8472 -j ACCEPT")
+os.execute("ip6tables -I INPUT 1 -i wg -m udp -p udp --dport 8472 -j ACCEPT")
 
 local vxlan_id = tonumber(util.domain_seed_bytes("gluon-mesh-vpn-vxlan", 3), 16)
 os.execute("ip link add mesh-vpn type vxlan id " .. vxlan_id .. " local " .. interface_linklocal() .. " remote " .. peer.link_address .. " dstport 8472 dev wg")
