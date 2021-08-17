@@ -7,11 +7,7 @@ You should use something like the following in the site.conf:
 	
 ```
  mesh_vpn = {
-	mtu = 1400,
 	wireguard = {
-		enabled = '1',
-		iface = 'mesh-vpn',
-		limit = '1', -- actually unused
 		ntp = '0.openwrt.pool.ntp.org'
 		api_endpoint = 'vpn.freifunk-myk.de' -- http(s)://<api_endpoint>/api/v1/wg/key/exchange
 		peers = {
