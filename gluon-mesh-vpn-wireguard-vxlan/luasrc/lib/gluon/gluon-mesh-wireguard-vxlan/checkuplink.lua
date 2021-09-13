@@ -119,7 +119,7 @@ os.execute("ip link delete dev wg")
 
 local proto = "https"
 
-if os.execute("wget -q https://[::1]") == 1 then
+if os.execute("wget -q https://[::1]") == 256 then -- return code is multiplied by 256
 	proto = "http"
 end
 
