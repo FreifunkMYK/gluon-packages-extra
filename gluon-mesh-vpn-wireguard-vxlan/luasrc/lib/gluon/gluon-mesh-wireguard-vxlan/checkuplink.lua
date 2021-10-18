@@ -79,39 +79,7 @@ end)
 local peer = peers[math.random(#peers)]
 local endpoint_name, endpoint_port = peer.endpoint:match("(.*):([0-9]+)$")
 
-local has_ipv6_gateway = false
-local ip_route = io.popen("ip -6 route show table 1")
-for line in ip_route:lines() do
-	if line:sub(1, 11) == "default via" then
-		has_ipv6_gateway = true
-		break
-	end
-end
-ip_route:close()
-
-local endpoint_addr = nil
-local nslookup = io.popen("gluon-wan nslookup " .. endpoint_name)
-for line in nslookup:lines() do
-	local addr = nil
-	if has_ipv6_gateway then
-		addr = line:match("Address%s+%d+:%s+(%x+%:.*%:%x+)$")
-		if addr ~= nil then
-			addr = "[" .. addr .. "]"
-		end
-	else
-		addr = line:match("Address%s+%d+:%s+(%d+%.%d+%.%d+%.%d+)$")
-	end
-	if addr ~= nil then
-		endpoint_addr = addr
-		break
-	end
-end
-
-if endpoint_addr == nil then
-	endpoint_addr = endpoint_name
-end
-
-log("connecting to " .. endpoint_addr)
+log("connecting to " .. endpoint_name)
 
 os.execute("ip link set nomaster dev mesh-vpn")
 os.execute("ip link delete dev mesh-vpn")
@@ -137,7 +105,7 @@ wg_set:close()
 os.execute("ip link set up dev wg")
 os.execute("ip address add " .. interface_linklocal() .. "/64 dev wg")
 
-os.execute("gluon-wan wg set wg peer " .. peer.publickey .. " persistent-keepalive 25 allowed-ips " .. peer.link_address .. "/128 endpoint " .. endpoint_addr .. ":" .. endpoint_port)
+os.execute("gluon-wan wg set wg peer " .. peer.publickey .. " persistent-keepalive 25 allowed-ips " .. peer.link_address .. "/128 endpoint " .. endpoint_name .. ":" .. endpoint_port)
 os.execute("ip6tables -I INPUT 1 -i wg -m udp -p udp --dport 8472 -j ACCEPT")
 
 local vxlan_id = tonumber(util.domain_seed_bytes("gluon-mesh-vpn-vxlan", 3), 16)
