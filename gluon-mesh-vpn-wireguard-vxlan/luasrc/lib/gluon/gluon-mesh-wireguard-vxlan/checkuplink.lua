@@ -85,17 +85,6 @@ os.execute("ip link set nomaster dev mesh-vpn")
 os.execute("ip link delete dev mesh-vpn")
 os.execute("ip link delete dev wg")
 
-local proto = "https"
-
-if os.execute("wget -q https://[::1]") == 256 then -- return code is multiplied by 256
-	proto = "http"
-end
-
-local segment = uci:get("gluon", "core", "domain")
-local api_endpoint = uci:get("wireguard", "mesh_vpn", "api_endpoint")
-
-os.execute("gluon-wan wget -q -O- --post-data='{\"domain\": \"" .. segment .. "\",\"public_key\": \"" .. wg_pubkey() .. "\"}' " .. proto .. "://" .. api_endpoint .. "/api/v1/wg/key/exchange")
-
 os.execute("ip link add dev wg type wireguard")
 os.execute("wg set wg fwmark 1")
 local private_key = uci:get("wireguard", "mesh_vpn", "privatekey")
