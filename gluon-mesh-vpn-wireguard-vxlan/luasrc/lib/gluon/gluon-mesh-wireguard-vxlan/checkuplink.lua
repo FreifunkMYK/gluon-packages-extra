@@ -80,6 +80,27 @@ local peer = peers[math.random(#peers)]
 local endpoint_name, endpoint_port = peer.endpoint:match("(.*):([0-9]+)$")
 
 log("connecting to " .. endpoint_name)
+local has_ipv6_gateway = false
+local ip_route = io.popen("ip -6 route show table 1")
+for line in ip_route:lines() do
+	if line:sub(1, 11) == "default via" then
+		has_ipv6_gateway = true
+		break
+	end
+end
+ip_route:close()
+
+if not has_ipv6_gateway then
+    local nslookup = io.popen("gluon-wan nslookup " .. endpoint_name)
+    for line in nslookup:lines() do
+        local addr = nil
+        addr = line:match("Address%s+%d+:%s+(%d+%.%d+%.%d+%.%d+)$")
+        if addr ~= nil then
+            endpoint_name = addr
+            break
+        end
+    end
+end
 
 os.execute("ip link set nomaster dev mesh-vpn")
 os.execute("ip link delete dev mesh-vpn")
