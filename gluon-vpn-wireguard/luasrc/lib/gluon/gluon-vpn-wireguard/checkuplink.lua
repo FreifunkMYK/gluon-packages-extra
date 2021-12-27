@@ -67,6 +67,9 @@ function reconnect_wireguard(has_ipv6_gateway)
 end
 
 function stop_gateway()
+	log('stopping gateway')
+	stored_prefix_fd = io.open("/tmp/vpn-prefix", "w")
+	stored_prefix_fd:close()
 	os.execute("sysctl net.ipv6.conf.br-client.forwarding=0")
 	os.execute("/etc/init.d/gluon-ebtables restart")
 
@@ -88,6 +91,7 @@ function stop_gateway()
 end
 
 function start_gateway(prefix)
+	log('starting gateway')
 	os.execute("sysctl net.ipv6.conf.br-client.forwarding=1")
 	os.execute("ebtables-tiny -D INPUT -p IPv6 -i bat0 --ip6-proto ipv6-icmp --ip6-icmp-type router-solicitation -j DROP")
 	os.execute("ebtables-tiny -D OUTPUT -p IPv6 -o bat0 --ip6-proto ipv6-icmp --ip6-icmp-type router-advertisement -j DROP")
