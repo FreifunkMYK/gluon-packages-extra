@@ -7,7 +7,7 @@ local vpn_core = require 'gluon.mesh-vpn'
 local M = {}
 
 function M.public_key()
-        return util.trim(util.exec('/usr/bin/wg show wg_mesh_vpn public-key'))
+        return util.trim(util.exec('/usr/bin/wg show wg public-key'))
 end
 
 function M.enable(val)
@@ -20,10 +20,10 @@ function M.active()
 end
 
 function M.set_limit(ingress_limit, egress_limit)
-        uci:delete('simple-tc', 'mesh_vpn')
+        uci:delete('simple-tc', 'wg')
         if ingress_limit ~= nil and egress_limit ~= nil then
-                uci:section('simple-tc', 'interface', 'mesh_vpn', {
-                        ifname = vpn_core.get_interface(),
+                uci:section('simple-tc', 'interface', 'wg', {
+                        ifname = wg,
                         enabled = true,
                         limit_egress = egress_limit,
                         limit_ingress = ingress_limit,

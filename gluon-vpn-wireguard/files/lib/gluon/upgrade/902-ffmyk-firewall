@@ -1,0 +1,78 @@
+#!/bin/sh
+
+# this script adds rules needed to the gluon firewall-setup.
+
+# allow dhcpv4 on br-client
+uci set firewall.mesh_dhcpv4_ffmyk='rule'
+uci set firewall.mesh_dhcpv4_ffmyk.dest_port=67
+uci set firewall.mesh_dhcpv4_ffmyk.src='mesh'
+uci set firewall.mesh_dhcpv4_ffmyk.target='ACCEPT'
+uci set firewall.mesh_dhcpv4_ffmyk.proto='udp'
+uci set firewall.mesh_dhcpv4_ffmyk.family='ipv4'
+
+# allow dns on br-client
+uci set firewall.mesh_dns_ffmyk='rule'
+uci set firewall.mesh_dns_ffmyk.dest_port=53
+uci set firewall.mesh_dns_ffmyk.src='mesh'
+uci set firewall.mesh_dns_ffmyk.target='ACCEPT'
+uci set firewall.mesh_dns_ffmyk.proto='tcpudp'
+
+# allow ICMPv4 on br-client
+uci set firewall.mesh_ICMPv4_ffmyk='rule'
+uci set firewall.mesh_ICMPv4_ffmyk.icmp_type='echo-request'
+uci set firewall.mesh_ICMPv4_ffmyk.src='mesh'
+uci set firewall.mesh_ICMPv4_ffmyk.family='ipv4'
+uci set firewall.mesh_ICMPv4_ffmyk.target='ACCEPT'
+uci set firewall.mesh_ICMPv4_ffmyk.proto='icmp'
+
+# add a zone for the wg-interface
+uci set firewall.vpn='zone'
+uci set firewall.vpn.device='wg'
+uci set firewall.vpn.input='REJECT'
+uci set firewall.vpn.output='ACCEPT'
+uci set firewall.vpn.forward='REJECT'
+uci set firewall.vpn.name='vpn'
+uci set firewall.vpn.mtu_fix='1'
+
+# allow forwarding between br-client and wg-interface
+uci set firewall.mesh_wg_vpn='forwarding'
+uci set firewall.mesh_wg_vpn.src='mesh'
+uci set firewall.mesh_wg_vpn.dest='vpn'
+
+uci set firewall.wg_vpn_mesh='forwarding'
+uci set firewall.wg_vpn_mesh.src='vpn'
+uci set firewall.wg_vpn_mesh.dest='mesh'
+
+# allow respondd to be reached from vpn
+uci set firewall.vpn_respondd=rule
+uci set firewall.vpn_respondd.dest_port='1001'
+uci set firewall.vpn_respondd.name='vpn_respondd'
+uci set firewall.vpn_respondd.src_ip='2a03:2260:1016::/48'
+uci set firewall.vpn_respondd.target='ACCEPT'
+uci set firewall.vpn_respondd.proto='udp'
+uci set firewall.vpn_respondd.src='vpn'
+
+# allow ICMPv6 from vpn
+uci set firewall.vpn_ICMPv6_in=rule
+uci set firewall.vpn_ICMPv6_in.icmp_type='echo-request'
+uci set firewall.vpn_ICMPv6_in.src='vpn'
+uci set firewall.vpn_ICMPv6_in.limit='1000/sec'
+uci set firewall.vpn_ICMPv6_in.family='ipv6'
+uci set firewall.vpn_ICMPv6_in.target='ACCEPT'
+uci set firewall.vpn_ICMPv6_in.proto='icmp'
+
+# allow SSH via tunnel
+uci set firewall.vpn_ssh=rule
+uci set firewall.vpn_ssh.dest_port='22'
+uci set firewall.vpn_ssh.src='vpn'
+uci set firewall.vpn_ssh.name='vpn_ssh'
+uci set firewall.vpn_ssh.target='ACCEPT'
+uci set firewall.vpn_ssh.proto='tcp'
+
+# allow HTTP via tunnel
+uci set firewall.vpn_http=rule
+uci set firewall.vpn_http.dest_port='80'
+uci set firewall.vpn_http.src='vpn'
+uci set firewall.vpn_http.name='vpn_http'
+uci set firewall.vpn_http.target='ACCEPT'
+uci set firewall.vpn_http.proto='tcp'
