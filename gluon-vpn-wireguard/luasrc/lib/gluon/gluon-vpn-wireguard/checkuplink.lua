@@ -3,6 +3,7 @@
 local uci = require("simple-uci").cursor()
 local hash = require 'hash'
 local util = require 'gluon.util'
+local site = require 'gluon.site'
 
 local RT_PROTO = '23'
 
@@ -67,10 +68,61 @@ end
 
 function stop_gateway()
 	os.execute("sysctl net.ipv6.conf.br-client.forwarding=0")
+	os.execute("/etc/init.d/gluon-ebtables restart")
+
+	uci:set('dhcp', 'local_client', 'ignore', '1')
+	uci:set('network', 'client', 'proto', 'dhcp')
+	uci:delete('network', 'client', 'ipaddr')
+	uci:delete('network', 'client', 'ip6addr')
+	uci:set('network', 'client6', 'proto', 'dhcpv6')
+	uci:set('network', 'gluon_bat0', 'gw_mode', 'client')
+
+	uci:commit('dhcp')
+	uci:commit('network')
+
+	os.execute("ebtables-tiny -F RADV_FILTER")
+	os.execute("/etc/init.d/gluon-radv-filterd start")
+	os.execute("/etc/init.d/ffmyk-radvd stop")
+	os.execute("/etc/init.d/network reload")
+
 end
 
 function start_gateway(prefix)
 	os.execute("sysctl net.ipv6.conf.br-client.forwarding=1")
+	os.execute("ebtables-tiny -D INPUT -p IPv6 -i bat0 --ip6-proto ipv6-icmp --ip6-icmp-type router-solicitation -j DROP")
+	os.execute("ebtables-tiny -D OUTPUT -p IPv6 -o bat0 --ip6-proto ipv6-icmp --ip6-icmp-type router-advertisement -j DROP")
+
+	os.execute("ip -6 route replace default dev wg proto " .. RT_PROTO)
+
+	uci:set('dhcp', 'local_client', 'interface', 'client')
+	uci:set('dhcp', 'local_client', 'ignore', '0')
+	uci:set('dhcp', 'local_client', 'leasetime', '5m')
+	uci:set('dhcp', 'local_client', 'start', '2')
+	uci:set('dhcp', 'local_client', 'limit', '65533')
+	uci:set('dhcp', 'local_client', 'force', '1')
+
+	uci:set('network', 'client', 'proto', 'static')
+	uci:set('network', 'client', 'ipaddr', '10.222.0.1/16')
+	uci:set('network', 'client', 'ip6addr', prefix)
+	uci:set('network', 'client6', 'proto', 'static')
+	uci:set('network', 'gluon_bat0', 'gw_mode', 'server')
+
+	uci:commit('dhcp')
+	uci:commit('network')
+
+	os.execute("/etc/init.d/gluon-radv-filterd stop")
+	os.execute("ebtables-tiny -F RADV_FILTER")
+
+	os.execute("/etc/init.d/network reload")
+
+	local radvd_arguments_fd = io.open("/tmp/ffmyk_radvd_arguments", "w")
+	radvd_arguments_fd:write("-i br-client ")
+	radvd_arguments_fd:write("-p " .. prefix .. " ")
+	radvd_arguments_fd:write("--default-lifetime 300 ")
+	radvd_arguments_fd:write("--rdnss " .. site.next_node.ip6())
+	radvd_arguments_fd:close()
+	os.execute("/etc/init.d/ffmyk-radvd start")
+	os.execute("/etc/init.d/dnsmasq restart")
 end
 
 function refresh_ips(current_peer_addr)
@@ -160,6 +212,7 @@ ip_route:close()
 
 if not has_ipv6_gateway and not has_ipv4_gateway then
 	log('no default route found. exiting...')
+	os.execute("ip link delete dev wg")
 	os.exit(0)
 end
 
