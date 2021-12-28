@@ -71,6 +71,7 @@ function stop_gateway()
 	stored_prefix_fd = io.open("/tmp/vpn-prefix", "w")
 	stored_prefix_fd:close()
 	os.execute("sysctl net.ipv6.conf.br-client.forwarding=0")
+	os.execute("rmmod jool_siit")
 	os.execute("/etc/init.d/gluon-ebtables restart")
 
 	uci:set('dhcp', 'local_client', 'ignore', '1')
@@ -78,6 +79,7 @@ function stop_gateway()
 	uci:delete('network', 'client', 'ipaddr')
 	uci:delete('network', 'client', 'ip6addr')
 	uci:set('network', 'client6', 'proto', 'dhcpv6')
+	uci:set('network', 'local-node', 'ipaddr', site.next_node.ip4() .. '/32')
 	uci:set('network', 'gluon_bat0', 'gw_mode', 'client')
 
 	uci:commit('dhcp')
@@ -127,6 +129,11 @@ function start_gateway(prefix)
 	radvd_arguments_fd:close()
 	os.execute("/etc/init.d/ffmyk-radvd start")
 	os.execute("/etc/init.d/dnsmasq restart")
+
+	os.execute("insmod jool_siit")
+	os.execute("jool_siit -6 64:ff9b::/96")
+	local slash_pos = prefix:find("/")
+	os.execute("jool_siit -e -a 10.222.0.0/16 " .. prefix:sub(0,slash_pos-1) .. "/112")
 end
 
 function refresh_ips(current_peer_addr)
