@@ -79,7 +79,7 @@ function stop_gateway()
 	uci:delete('network', 'client', 'ipaddr')
 	uci:delete('network', 'client', 'ip6addr')
 	uci:set('network', 'client6', 'proto', 'dhcpv6')
-	uci:set('network', 'local-node', 'ipaddr', site.next_node.ip4() .. '/32')
+	uci:set('network', 'local_node', 'ipaddr', site.next_node.ip4() .. '/32')
 	uci:set('network', 'gluon_bat0', 'gw_mode', 'client')
 
 	uci:commit('dhcp')
