@@ -96,6 +96,7 @@ function start_gateway(prefix)
 	os.execute("sysctl net.ipv6.conf.br-client.forwarding=1")
 	os.execute("ebtables-tiny -D INPUT -p IPv6 -i bat0 --ip6-proto ipv6-icmp --ip6-icmp-type router-solicitation -j DROP")
 	os.execute("ebtables-tiny -D OUTPUT -p IPv6 -o bat0 --ip6-proto ipv6-icmp --ip6-icmp-type router-advertisement -j DROP")
+	os.execute("ebtables-tiny -I FORWARD 1 -i br-client --logical-in br-client -p IPv6 --ip6-proto ipv6-icmp --ip6-icmp-type router-advertisement -j ACCEPT")
 
 	os.execute("ip -6 route replace default dev wg proto " .. RT_PROTO)
 
