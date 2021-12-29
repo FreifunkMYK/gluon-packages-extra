@@ -69,7 +69,7 @@ end
 function stop_gateway()
 	local has_jool = false
 	local jool_fd = io.open("/usr/sbin/jool_siit", "r")
-	if jool ~= nil then
+	if jool_fd ~= nil then
 		has_jool = true
 		jool_fd:close()
 	end
@@ -102,7 +102,7 @@ end
 function start_gateway(prefix)
 	local has_jool = false
 	local jool_fd = io.open("/usr/sbin/jool_siit", "r")
-	if jool ~= nil then
+	if jool_fd ~= nil then
 		has_jool = true
 		jool_fd:close()
 	end
