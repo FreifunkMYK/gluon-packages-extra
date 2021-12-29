@@ -67,11 +67,19 @@ function reconnect_wireguard(has_ipv6_gateway)
 end
 
 function stop_gateway()
+	local has_jool = false
+	local jool_fd = io.open("/usr/sbin/jool_siit", "r")
+	if jool ~= nil then
+		has_jool = true
+		jool_fd:close()
+	end
 	log('stopping gateway')
 	stored_prefix_fd = io.open("/tmp/vpn-prefix", "w")
 	stored_prefix_fd:close()
 	os.execute("sysctl net.ipv6.conf.br-client.forwarding=0")
-	os.execute("rmmod jool_siit")
+	if has_jool then
+		os.execute("rmmod jool_siit")
+	end
 	os.execute("/etc/init.d/gluon-ebtables restart")
 
 	uci:set('dhcp', 'local_client', 'ignore', '1')
@@ -92,6 +100,14 @@ function stop_gateway()
 end
 
 function start_gateway(prefix)
+	local has_jool = false
+	local jool_fd = io.open("/usr/sbin/jool_siit", "r")
+	if jool ~= nil then
+		has_jool = true
+		jool_fd:close()
+	end
+	local slash_pos = prefix:find("/")
+	local prefix_net = prefix:sub(0,slash_pos-1)
 	log('starting gateway')
 	os.execute("sysctl net.ipv6.conf.br-client.forwarding=1")
 	os.execute("ebtables-tiny -D INPUT -p IPv6 -i bat0 --ip6-proto ipv6-icmp --ip6-icmp-type router-solicitation -j DROP")
@@ -110,7 +126,7 @@ function start_gateway(prefix)
 	uci:set('network', 'local_node', 'ipaddr', site.next_node.ip4() .. '/32')
 	uci:set('network', 'client', 'proto', 'static')
 	uci:set('network', 'client', 'ipaddr', '10.222.0.1/16')
-	uci:set('network', 'client', 'ip6addr', prefix)
+	uci:set('network', 'client', 'ip6addr', prefix_net .. "1/64")
 	uci:set('network', 'client6', 'proto', 'static')
 	uci:set('network', 'gluon_bat0', 'gw_mode', 'server')
 
@@ -131,10 +147,11 @@ function start_gateway(prefix)
 	os.execute("/etc/init.d/ffmyk-radvd start")
 	os.execute("/etc/init.d/dnsmasq restart")
 
-	os.execute("insmod jool_siit")
-	os.execute("jool_siit -6 64:ff9b::/96")
-	local slash_pos = prefix:find("/")
-	os.execute("jool_siit -e -a 10.222.0.0/16 " .. prefix:sub(0,slash_pos-1) .. "/112")
+	if has_jool then
+		os.execute("insmod jool_siit")
+		os.execute("jool_siit -6 64:ff9b::/96")
+		os.execute("jool_siit -e -a 10.222.0.0/16 " .. prefix_net .. "/112")
+	end
 end
 
 function refresh_ips(current_peer_addr)
@@ -151,7 +168,6 @@ function refresh_ips(current_peer_addr)
 	if stored_prefix_fd ~= nil then
 		local stored_prefix = stored_prefix_fd:read("*l")
 		stored_prefix_fd:close()
-		log("stored prefix: " .. stored_prefix)
 		if stored_prefix == prefix then
 			return
 		end
@@ -229,4 +245,5 @@ if not has_ipv6_gateway and not has_ipv4_gateway then
 end
 
 reconnect_wireguard(has_ipv6_gateway)
+os.execute("ping -c 1 -w 10 " .. current_peer_addr .. "%wg > /dev/null")
 refresh_ips(current_peer_addr)
