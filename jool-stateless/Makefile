@@ -83,7 +83,7 @@ endef
 define Package/jool-tools-stateless
   $(call Package/jool-stateless/Default)
   TITLE:=Jool userspace control programs
-  DEPENDS:=+libnl +ethtool
+  DEPENDS:=+libnl-genl +ethtool
 endef
 
 define Package/jool-tools-stateless/description
