@@ -165,6 +165,23 @@ function refresh_ips(current_peer_addr)
 	start_gateway(prefix)
 end
 
+function get_current_peer_addr()
+	local current_peer_addr = nil
+	local wg_show = io.popen("wg show wg dump")
+	if wg_show:read("*l") ~= nil then
+		local peer = wg_show:read("*l")
+		if peer ~= nil then
+			uci:foreach("wireguard", "peer", function(config_peer)
+				if string.sub(peer,1,string.len(config_peer.publickey)) == config_peer.publickey then
+					current_peer_addr = config_peer.link_address
+				end
+			end)
+		end
+	end
+	wg_show:close()
+	return current_peer_addr
+end
+
 if uci:get("wireguard", "mesh_vpn", "privatekey") == nil then
 	local privkey = io.popen("wg genkey"):read("*l")
 	uci:set("wireguard", "mesh_vpn", "privatekey", privkey)
@@ -177,19 +194,7 @@ if not uci:get_bool("wireguard", "mesh_vpn", "enabled") then
 end
 
 log('checking mesh-vpn connection')
-local wg_show = io.popen("wg show wg dump")
-local current_peer_addr = nil
-if wg_show:read("*l") ~= nil then
-	local peer = wg_show:read("*l")
-	if peer ~= nil then
-		uci:foreach("wireguard", "peer", function(config_peer)
-			if string.sub(peer,1,string.len(config_peer.publickey)) == config_peer.publickey then
-				current_peer_addr = config_peer.link_address
-			end
-		end)
-	end
-end
-wg_show:close()
+local current_peer_addr = get_current_peer_addr()
 
 if current_peer_addr then
 	if os.execute("ping -c 1 -w 5 " .. current_peer_addr .. "%wg > /dev/null") == 0 then
@@ -230,5 +235,6 @@ if not has_ipv6_gateway and not has_ipv4_gateway then
 end
 
 reconnect_wireguard(has_ipv6_gateway)
+local current_peer_addr = get_current_peer_addr()
 os.execute("ping -c 1 -w 10 " .. current_peer_addr .. "%wg > /dev/null")
 refresh_ips(current_peer_addr)
