@@ -139,6 +139,7 @@ function start_gateway(prefix)
 end
 
 function refresh_ips(current_peer_addr)
+	log('refreshing ipv6 prefix...')
 	local prefix = io.popen("nc " .. current_peer_addr .. "%wg 9999"):read("*l")
 	if prefix == nil then
 		log('failed to retrieve prefix')
