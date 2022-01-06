@@ -67,19 +67,11 @@ function reconnect_wireguard(has_ipv6_gateway)
 end
 
 function stop_gateway()
-	local has_jool = false
-	local jool_fd = io.open("/usr/sbin/jool_siit", "r")
-	if jool_fd ~= nil then
-		has_jool = true
-		jool_fd:close()
-	end
 	log('stopping gateway')
 	stored_prefix_fd = io.open("/tmp/vpn-prefix", "w")
 	stored_prefix_fd:close()
 	os.execute("sysctl net.ipv6.conf.br-client.forwarding=0")
-	if has_jool then
-		os.execute("rmmod jool_siit")
-	end
+	os.execute("rmmod jool_siit")
 	os.execute("/etc/init.d/gluon-ebtables restart")
 
 	uci:set('dhcp', 'local_client', 'ignore', '1')
@@ -100,12 +92,6 @@ function stop_gateway()
 end
 
 function start_gateway(prefix)
-	local has_jool = false
-	local jool_fd = io.open("/usr/sbin/jool_siit", "r")
-	if jool_fd ~= nil then
-		has_jool = true
-		jool_fd:close()
-	end
 	local slash_pos = prefix:find("/")
 	local prefix_net = prefix:sub(0,slash_pos-1)
 	log('starting gateway')
@@ -147,11 +133,9 @@ function start_gateway(prefix)
 	os.execute("/etc/init.d/ffmyk-radvd start")
 	os.execute("/etc/init.d/dnsmasq restart")
 
-	if has_jool then
-		os.execute("insmod jool_siit")
-		os.execute("jool_siit -6 64:ff9b::/96")
-		os.execute("jool_siit -e -a 10.222.0.0/16 " .. prefix_net .. "/112")
-	end
+	os.execute("insmod jool_siit")
+	os.execute("jool_siit -6 64:ff9b::/96")
+	os.execute("jool_siit -e -a 10.222.0.0/16 " .. prefix_net .. "/112")
 end
 
 function refresh_ips(current_peer_addr)
