@@ -11,6 +11,10 @@ function log(msg)
 	util.log("checkuplink: " .. msg)
 end
 
+function sleep(n)
+  os.execute("sleep " .. tonumber(n))
+end
+
 function wg_pubkey()
 	local privkey = uci:get("wireguard", "mesh_vpn", "privatekey")
 	return io.popen("echo " .. privkey .. " | wg pubkey"):read("*l")
@@ -120,7 +124,6 @@ function start_gateway(prefix)
 	uci:commit('network')
 
 	os.execute("/etc/init.d/gluon-radv-filterd stop")
-	os.execute("ebtables-tiny -F RADV_FILTER")
 
 	os.execute("/etc/init.d/network reload")
 
@@ -130,6 +133,10 @@ function start_gateway(prefix)
 	radvd_arguments_fd:write("--default-lifetime 900 ")
 	radvd_arguments_fd:write("--rdnss " .. site.next_node.ip6())
 	radvd_arguments_fd:close()
+
+	sleep(2)
+
+	os.execute("ebtables-tiny -F RADV_FILTER")
 	os.execute("/etc/init.d/ffmyk-radvd start")
 	os.execute("/etc/init.d/dnsmasq restart")
 
