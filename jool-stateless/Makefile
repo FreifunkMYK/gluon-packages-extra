@@ -8,13 +8,13 @@ include $(TOPDIR)/rules.mk
 include $(INCLUDE_DIR)/kernel.mk
 
 PKG_NAME:=jool-stateless
-PKG_VERSION:=3.5.7
+PKG_VERSION:=4.1.6
 PKG_RELEASE:=2
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
-PKG_SOURCE_URL:=https://codeload.github.com/NICMx/Jool/tar.gz/v$(PKG_VERSION)?
-PKG_HASH:=b8e95d1526cd2434dedbae292afd2d17f0780ac2dca2be21264712b41eb76a3d
-PKG_BUILD_DIR:=$(KERNEL_BUILD_DIR)/Jool-$(PKG_VERSION)
+PKG_SOURCE_URL:=https://github.com/FreifunkMYK/jool-stateless.git
+PKG_SOURCE_VERSION:=c1e8ce77636e631df6ab1ed335316086c318e68a
+PKG_BUILD_DIR:=$(KERNEL_BUILD_DIR)/jool-$(PKG_VERSION)
 
 PKG_LICENSE:=GPL-2.0
 PKG_LICENSE_FILES:=COPYING
@@ -34,9 +34,8 @@ define Build/Compile
 		KERNEL_DIR="$(LINUX_DIR)" \
 		ARCH="$(LINUX_KARCH)" \
 		CROSS_COMPILE="$(TARGET_CROSS)" \
-		SUBDIRS="$(PKG_BUILD_DIR)/mod/stateless" \
-		V="$(V)" \
-		modules
+		SUBDIRS="$(PKG_BUILD_DIR)/src/mod" \
+		V="$(V)"
 	$(call Build/Compile/Default)
 endef
 
@@ -67,11 +66,11 @@ define KernelPackage/jool-stateless
   TITLE:=Jool kernel module
   DEPENDS:= \
     @IPV6 \
-    +kmod-crypto-md5 \
     +kmod-nf-conntrack \
     +kmod-nf-conntrack6
   FILES:= \
-    $(PKG_BUILD_DIR)/mod/stateless/jool_siit.$(LINUX_KMOD_SUFFIX)
+    $(PKG_BUILD_DIR)/src/mod/common/jool_common.$(LINUX_KMOD_SUFFIX) \
+    $(PKG_BUILD_DIR)/src/mod/siit/jool_siit.$(LINUX_KMOD_SUFFIX)
 endef
 
 define KernelPackage/jool-stateless/description
@@ -94,7 +93,7 @@ endef
 
 define Package/jool-tools-stateless/install
 	$(INSTALL_DIR) $(1)/usr/sbin/
-	$(INSTALL_BIN) $(PKG_BUILD_DIR)/usr/stateless/jool_siit $(1)/usr/sbin/
+	$(INSTALL_BIN) $(PKG_BUILD_DIR)/src/usr/siit/jool_siit $(1)/usr/sbin/
 endef
 
 $(eval $(call BuildPackage,jool-stateless))

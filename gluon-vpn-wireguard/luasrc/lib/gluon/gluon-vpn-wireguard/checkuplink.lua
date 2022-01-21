@@ -123,8 +123,6 @@ function start_gateway(prefix)
 	uci:commit('dhcp')
 	uci:commit('network')
 
-	os.execute("/etc/init.d/gluon-radv-filterd stop")
-
 	os.execute("/etc/init.d/network reload")
 
 	local radvd_arguments_fd = io.open("/tmp/ffmyk_radvd_arguments", "w")
@@ -135,6 +133,8 @@ function start_gateway(prefix)
 	radvd_arguments_fd:close()
 
 	sleep(2)
+
+	os.execute("/etc/init.d/gluon-radv-filterd stop")
 
 	os.execute("ebtables-tiny -F RADV_FILTER")
 	os.execute("/etc/init.d/ffmyk-radvd start")
