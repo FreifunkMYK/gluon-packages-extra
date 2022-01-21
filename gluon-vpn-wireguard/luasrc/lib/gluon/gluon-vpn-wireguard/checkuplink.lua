@@ -56,8 +56,6 @@ function reconnect_wireguard(has_ipv6_gateway)
 	    end
 	end
 
-	os.execute("ip link delete dev wg")
-
 	os.execute("ip link add dev wg type wireguard")
 	os.execute("wg set wg fwmark 1")
 	local private_key = uci:get("wireguard", "mesh_vpn", "privatekey")
@@ -76,6 +74,7 @@ function stop_gateway()
 	stored_prefix_fd:close()
 	os.execute("sysctl net.ipv6.conf.br-client.forwarding=0")
 	os.execute("rmmod jool_siit")
+	os.execute("rmmod jool_common")
 	os.execute("/etc/init.d/gluon-ebtables restart")
 
 	uci:set('dhcp', 'local_client', 'ignore', '1')
@@ -140,6 +139,7 @@ function start_gateway(prefix)
 	os.execute("/etc/init.d/ffmyk-radvd start")
 	os.execute("/etc/init.d/dnsmasq restart")
 
+	os.execute("insmod jool_common")
 	os.execute("insmod jool_siit")
 	os.execute("jool_siit -6 64:ff9b::/96")
 	os.execute("jool_siit -e -a 10.222.0.0/16 " .. prefix_net .. "/112")
@@ -210,10 +210,13 @@ if current_peer_addr then
 		os.exit(0)
 	else
 		log("ping of wireguard tunnel peer address " .. current_peer_addr .. " unsuccessful")
+		stop_gateway()
 	end
 else
 	log("cannot determine wireguard tunnel peer address")
 end
+
+os.execute("ip link delete dev wg")
 
 local has_ipv6_gateway = false
 local ip_route = io.popen("ip -6 route show table 1")
@@ -237,7 +240,6 @@ ip_route:close()
 
 if not has_ipv6_gateway and not has_ipv4_gateway then
 	log('no default route found. exiting...')
-	os.execute("ip link delete dev wg")
 	os.exit(0)
 end
 
