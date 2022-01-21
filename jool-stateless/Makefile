@@ -53,6 +53,7 @@ define Package/jool-stateless
   $(call Package/jool-stateless/Default)
   TITLE:=Jool meta-package
   DEPENDS:=+kmod-jool-stateless +jool-tools-stateless
+  BUILDONLY:=1
 endef
 
 define Package/jool-stateless/description
@@ -82,7 +83,7 @@ endef
 define Package/jool-tools-stateless
   $(call Package/jool-stateless/Default)
   TITLE:=Jool userspace control programs
-  DEPENDS:=+libnl-genl +ethtool
+  DEPENDS:=+libnl-genl
 endef
 
 define Package/jool-tools-stateless/description
@@ -90,6 +91,14 @@ define Package/jool-tools-stateless/description
 
   This package provides the userspace control programs for Jool.
 endef
+
+CONFIGURE_ARGS += \
+				  --disable-shared \
+				  --without-bash-completion-dir
+
+CONFIGURE_VARS += \
+				  ac_cv_func_memset=yes \
+				  ac_cv_func_strcasecmp=yes
 
 define Package/jool-tools-stateless/install
 	$(INSTALL_DIR) $(1)/usr/sbin/
