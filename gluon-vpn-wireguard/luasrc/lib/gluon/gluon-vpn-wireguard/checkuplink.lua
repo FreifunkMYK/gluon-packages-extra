@@ -70,8 +70,7 @@ end
 
 function stop_gateway()
 	log('stopping gateway')
-	stored_prefix_fd = io.open("/tmp/vpn-prefix", "w")
-	stored_prefix_fd:close()
+	os.remove("/tmp/vpn-prefix")
 	os.execute("sysctl net.ipv6.conf.br-client.forwarding=0")
 	os.execute("rmmod jool_siit")
 	os.execute("rmmod jool_common")
