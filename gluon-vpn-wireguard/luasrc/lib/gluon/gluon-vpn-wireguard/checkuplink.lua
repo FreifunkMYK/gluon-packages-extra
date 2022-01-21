@@ -203,7 +203,14 @@ log('checking mesh-vpn connection')
 local current_peer_addr = get_current_peer_addr()
 
 if current_peer_addr then
-	if os.execute("ping -c 1 -w 5 " .. current_peer_addr .. "%wg > /dev/null") == 0 then
+	local ping_fail_count = 0
+	while ping_fail_count < 5 do
+		if os.execute("ping -c 1 -w 5 " .. current_peer_addr .. "%wg > /dev/null") == 0 then
+			break
+		end
+		ping_fail_count = ping_fail_count + 1
+	end
+	if ping_fail_count < 5 then
 		log("connection check ok")
 		refresh_ips(current_peer_addr)
 		os.exit(0)
