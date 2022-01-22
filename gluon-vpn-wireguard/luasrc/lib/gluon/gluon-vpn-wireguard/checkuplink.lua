@@ -141,7 +141,6 @@ function start_gateway(prefix)
 	os.execute("insmod jool_common")
 	os.execute("insmod jool_siit")
 	os.execute("jool_siit instance add default --pool6 64:ff9b::/96")
-	os.execute("jool_siit -e -a 10.222.0.0/16 " .. prefix_net .. "/112")
 	os.execute("jool_siit eamt add " .. prefix_net .. "/112 10.222.0.0/16")
 end
 
