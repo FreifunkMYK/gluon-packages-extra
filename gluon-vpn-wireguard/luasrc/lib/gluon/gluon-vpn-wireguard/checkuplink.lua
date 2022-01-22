@@ -111,6 +111,7 @@ function start_gateway(prefix)
 	uci:set('dhcp', 'local_client', 'limit', '65531')
 	uci:set('dhcp', 'local_client', 'force', '1')
 
+	uci:set('network', 'local_node', 'ipaddr', site.next_node.ip4() .. '/32')
 	uci:set('network', 'client', 'proto', 'static')
 	uci:set('network', 'client', 'ipaddr', '10.222.0.1/16')
 	uci:set('network', 'client', 'ip6addr', prefix_net .. "1/64")
