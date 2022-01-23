@@ -83,11 +83,10 @@ function stop_gateway()
 	uci:set('network', 'client6', 'proto', 'dhcpv6')
 	uci:set('network', 'gluon_bat0', 'gw_mode', 'client')
 
-	uci:commit('dhcp')
-	uci:commit('network')
+	uci:save('dhcp')
+	uci:save('network')
 
-	os.execute("ebtables-tiny -F RADV_FILTER")
-	os.execute("/etc/init.d/gluon-radv-filterd start")
+	os.execute("/etc/init.d/gluon-radv-filterd restart")
 	os.execute("/etc/init.d/ffmyk-radvd stop")
 	os.execute("/etc/init.d/network reload")
 
@@ -118,8 +117,8 @@ function start_gateway(prefix)
 	uci:set('network', 'client6', 'proto', 'static')
 	uci:set('network', 'gluon_bat0', 'gw_mode', 'server')
 
-	uci:commit('dhcp')
-	uci:commit('network')
+	uci:save('dhcp')
+	uci:save('network')
 
 	os.execute("/etc/init.d/network reload")
 
