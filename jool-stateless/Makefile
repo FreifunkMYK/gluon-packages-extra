@@ -23,7 +23,6 @@ PKG_LICENSE_FILES:=COPYING
 PKG_FIXUP:=autoreconf
 
 PKG_INSTALL:=1
-PKG_BUILD_PARALLEL:=1
 PKG_BUILD_DEPENDS:=USE_UCLIBC:argp-standalone USE_MUSL:argp-standalone
 
 include $(INCLUDE_DIR)/package.mk
