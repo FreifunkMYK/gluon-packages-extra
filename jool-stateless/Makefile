@@ -68,7 +68,7 @@ define KernelPackage/jool-stateless
     +kmod-nf-conntrack \
     +kmod-nf-conntrack6
   FILES:= \
-    $(PKG_BUILD_DIR)/src/mod/common/jool_common.$(LINUX_KMOD_SUFFIX) \
+    $(PKG_BUILD_DIR)/src/mod/common/jool_common.$(LINUX_KMOD_SUFFIX)
 endef
 
 define KernelPackage/jool-stateless/description
