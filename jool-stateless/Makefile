@@ -32,14 +32,7 @@ define Build/Compile
 		KERNEL_DIR="$(LINUX_DIR)" \
 		ARCH="$(LINUX_KARCH)" \
 		CROSS_COMPILE="$(TARGET_CROSS)" \
-		M="$(PKG_BUILD_DIR)/src/mod/common" \
-		V="$(V)" \
-		modules
-	$(MAKE) -C "$(LINUX_DIR)" \
-		KERNEL_DIR="$(LINUX_DIR)" \
-		ARCH="$(LINUX_KARCH)" \
-		CROSS_COMPILE="$(TARGET_CROSS)" \
-		M="$(PKG_BUILD_DIR)/src/mod/siit" \
+		M="$(PKG_BUILD_DIR)/src/mod" \
 		V="$(V)" \
 		modules
 	$(call Build/Compile/Default)
