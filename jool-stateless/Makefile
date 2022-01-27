@@ -14,7 +14,7 @@ PKG_RELEASE:=$(AUTORELEASE)
 PKG_SOURCE_PROTO:=git
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
 PKG_SOURCE_URL:=https://github.com/FreifunkMYK/jool-stateless.git
-PKG_SOURCE_VERSION:=5ddc9df90216684986e4c75725877bb4a49752b9
+PKG_SOURCE_VERSION:=975b27a9709454ea788e9ec9318939518c5c8e37
 PKG_BUILD_DIR:=$(KERNEL_BUILD_DIR)/jool-stateless-$(PKG_VERSION)
 
 PKG_LICENSE:=GPL-2.0-only
@@ -32,7 +32,7 @@ define Build/Compile
 		KERNEL_DIR="$(LINUX_DIR)" \
 		ARCH="$(LINUX_KARCH)" \
 		CROSS_COMPILE="$(TARGET_CROSS)" \
-		M="$(PKG_BUILD_DIR)/src/mod" \
+		M="$(PKG_BUILD_DIR)/src/mod/common" \
 		V="$(V)" \
 		modules
 	$(call Build/Compile/Default)
@@ -69,7 +69,6 @@ define KernelPackage/jool-stateless
     +kmod-nf-conntrack6
   FILES:= \
     $(PKG_BUILD_DIR)/src/mod/common/jool_common.$(LINUX_KMOD_SUFFIX) \
-    $(PKG_BUILD_DIR)/src/mod/siit/jool_siit.$(LINUX_KMOD_SUFFIX)
 endef
 
 define KernelPackage/jool-stateless/description
