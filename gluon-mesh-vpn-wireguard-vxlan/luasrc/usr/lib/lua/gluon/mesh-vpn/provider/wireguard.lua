@@ -11,8 +11,8 @@ function M.public_key()
 end
 
 function M.enable(val)
-        uci:set('wireguard', 'mesh_vpn', 'enabled', val)
-        uci:save('wireguard')
+        uci:set('gluon', 'mesh_vpn', 'enabled', val)
+        uci:save('gluon')
 end
 
 function M.active()

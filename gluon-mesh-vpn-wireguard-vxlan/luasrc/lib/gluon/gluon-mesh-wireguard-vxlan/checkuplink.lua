@@ -24,7 +24,7 @@ if uci:get("wireguard", "mesh_vpn", "privatekey") == nil then
 	uci:save("wireguard")
 end
 
-if not uci:get_bool("wireguard", "mesh_vpn", "enabled") then
+if not uci:get_bool("gluon", "mesh_vpn", "enabled") then
 	os.exit(0)
 end
 
