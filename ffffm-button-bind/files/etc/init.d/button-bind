@@ -2,7 +2,7 @@
 
 START=97
 
-start_service() {
+start() {
 	local FUNCTION=$(uci get button-bind.wifi.function)
 	if [ "${FUNCTION}" = 3 ] || [ "${FUNCTION}" = 4 ]
 	then
