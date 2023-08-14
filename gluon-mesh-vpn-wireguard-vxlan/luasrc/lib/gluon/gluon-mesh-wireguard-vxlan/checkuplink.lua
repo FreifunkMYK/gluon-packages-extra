@@ -68,18 +68,7 @@ os.execute("gluon-wan /usr/sbin/ntpd -n -N -S /usr/sbin/ntpd-hotplug -p " .. ntp
 
 math.randomseed(os.time())
 
-local peers = {}
-uci:foreach("wireguard", "peer", function(peer)
-	if peer.enabled ~= "1" then
-		return
-	end
-	table.insert(peers, peer)
-end)
 
-local peer = peers[math.random(#peers)]
-local endpoint_name, endpoint_port = peer.endpoint:match("(.*):([0-9]+)$")
-
-log("connecting to " .. endpoint_name)
 local has_ipv6_gateway = false
 local ip_route = io.popen("ip -6 route show table 1")
 for line in ip_route:lines() do
@@ -90,17 +79,55 @@ for line in ip_route:lines() do
 end
 ip_route:close()
 
-if not has_ipv6_gateway then
-    local nslookup = io.popen("gluon-wan nslookup " .. endpoint_name)
-    for line in nslookup:lines() do
-        local addr = nil
-        addr = line:match("Address%s+%d+:%s+(%d+%.%d+%.%d+%.%d+)$")
-        if addr ~= nil then
-            endpoint_name = addr
-            break
-        end
-    end
+
+local peers = {}
+uci:foreach("wireguard", "peer", function(peer)
+	if peer.enabled ~= "1" then
+		return
+	end
+	table.insert(peers, peer)
+end)
+
+local peer = nil
+local endpoint_name = nil
+local endpoint_ip = nil
+local endpoint_port = nil
+
+while peer == nil and #peers > 0 do
+	local peer_pos = math.ramdom(#peers)
+	peer = peers[peer_pos]
+	table.remove(peers, peer_pos)
+	endpoint_name, endpoint_port = peer.endpoint:match("(.*):([0-9]+)$")
+
+	local nslookup = io.popen("gluon-wan nslookup " .. endpoint_name)
+	for line in nslookup:lines() do
+		local addr = nil
+		if has_ipv6_gateway then
+			addr = line:match("Address:%s+(%x+[:%x]+)$")
+		else
+			addr = line:match("Address:%s+(%d+%.%d+%.%d+%.%d+)$")
+		end
+		if addr ~= nil then
+			if has_ipv6_gateway then
+				endpoint_ip = "[" .. addr .. "]"
+			else
+				endpoint_ip = addr
+			end
+			break
+		end
+	end
+
+	if endpoint_ip == nil then
+		peer = nil
+	end
 end
+
+if peer == nil then
+	log("unable to resolve any peer")
+	os.exit(0)
+end
+
+log("connecting to " .. endpoint_name .. "(" .. endpoint_ip .. ")")
 
 os.execute("ip link set nomaster dev mesh-vpn")
 os.execute("ip link delete dev mesh-vpn")
@@ -115,7 +142,7 @@ wg_set:close()
 os.execute("ip link set up dev wg")
 os.execute("ip address add " .. interface_linklocal() .. "/64 dev wg")
 
-os.execute("gluon-wan wg set wg peer " .. peer.publickey .. " persistent-keepalive 25 allowed-ips " .. peer.link_address .. "/128 endpoint " .. endpoint_name .. ":" .. endpoint_port)
+os.execute("gluon-wan wg set wg peer " .. peer.publickey .. " persistent-keepalive 25 allowed-ips " .. peer.link_address .. "/128 endpoint " .. endpoint_ip .. ":" .. endpoint_port)
 os.execute("ip6tables -I INPUT 1 -i wg -m udp -p udp --dport 8472 -j ACCEPT")
 
 local vxlan_id = tonumber(util.domain_seed_bytes("gluon-mesh-vpn-vxlan", 3), 16)
