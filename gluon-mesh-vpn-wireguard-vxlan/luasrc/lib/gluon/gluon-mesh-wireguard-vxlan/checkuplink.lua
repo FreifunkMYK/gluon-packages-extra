@@ -99,6 +99,7 @@ while peer == nil and #peers > 0 do
 	table.remove(peers, peer_pos)
 	endpoint_name, endpoint_port = peer.endpoint:match("(.*):([0-9]+)$")
 
+	log("resolving " .. endpoint_name .. "...")
 	local nslookup = io.popen("gluon-wan nslookup " .. endpoint_name)
 	for line in nslookup:lines() do
 		local addr = nil
@@ -118,6 +119,7 @@ while peer == nil and #peers > 0 do
 	end
 
 	if endpoint_ip == nil then
+		log("resolving " .. endpoint_name .. " failed")
 		peer = nil
 	end
 end
