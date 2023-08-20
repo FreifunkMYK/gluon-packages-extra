@@ -94,7 +94,7 @@ local endpoint_ip = nil
 local endpoint_port = nil
 
 while peer == nil and #peers > 0 do
-	local peer_pos = math.ramdom(#peers)
+	local peer_pos = math.random(#peers)
 	peer = peers[peer_pos]
 	table.remove(peers, peer_pos)
 	endpoint_name, endpoint_port = peer.endpoint:match("(.*):([0-9]+)$")
