@@ -40,6 +40,13 @@ end
 wg_show:close()
 
 if current_peer_addr then
+	local f = io.open("/tmp/wg_endpoint_fallback", "r")
+	local fallback = nil
+	if f ~= nil then
+		fallback = f:read("*all")
+		f:close()
+		os.remove("/tmp/wg_endpoint_fallback")
+	end
 	if os.execute("ping -c 1 -w 5 " .. current_peer_addr .. "%wg > /dev/null") == 0 then
 		local gwmac = ""
 		local batctl_gwl = io.popen("batctl gwl")
@@ -57,6 +64,12 @@ if current_peer_addr then
 		end
 	else
 		log("ping of wireguard tunnel peer address " .. current_peer_addr .. " unsuccessful")
+	end
+
+	if fallback ~= nil then
+		log("trying ipv4 instead")
+		os.execute("gluon-wan wg set wg peer " .. fallback)
+		os.exit(0)
 	end
 else
 	log("cannot determine wireguard tunnel peer address")
@@ -101,21 +114,26 @@ while peer == nil and #peers > 0 do
 
 	log("resolving " .. endpoint_name .. "...")
 	local nslookup = io.popen("gluon-wan nslookup " .. endpoint_name)
+	local addr6 = nil
+	local addr4 = nil
 	for line in nslookup:lines() do
-		local addr = nil
-		if has_ipv6_gateway then
-			addr = line:match("Address:%s+(%x+[:%x]+)$")
-		else
-			addr = line:match("Address:%s+(%d+%.%d+%.%d+%.%d+)$")
+		if addr4 == nil then
+			addr4 = line:match("Address:%s+(%d+%.%d+%.%d+%.%d+)$")
 		end
-		if addr ~= nil then
-			if has_ipv6_gateway then
-				endpoint_ip = "[" .. addr .. "]"
-			else
-				endpoint_ip = addr
-			end
-			break
+		if addr6 == nil then
+			addr6 = line:match("Address:%s+(%x+[:%x]+)$")
 		end
+	end
+	if has_ipv6_gateway and addr6 ~= nil then
+		endpoint_ip = "[" .. addr6 .. "]"
+		local f = io.open("/tmp/wg_endpoint_fallback", "w")
+		f:write(peer.publickey .. " endpoint " .. addr4 .. ":" .. endpoint_port)
+		f:close()
+		break
+	end
+	if addr4 ~= nil then
+		endpoint_ip = addr4
+		break
 	end
 
 	if endpoint_ip == nil then
