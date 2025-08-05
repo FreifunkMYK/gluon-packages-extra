@@ -28,6 +28,18 @@ if not uci:get_bool("gluon", "mesh_vpn", "enabled") then
 	os.exit(0)
 end
 
+local disable_vpn = io.open("/tmp/disable_vpn", "r")
+if disable_vpn ~= nil then
+	local disable_end_time = disable_vpn:read("*all")
+	io.close(disable_vpn)
+	local now = os.time()
+	if now > disable_end_time then
+		os.remove("/tmp/disable_vpn")
+	else
+		os.exit(0)
+	end
+end
+
 log('checking mesh-vpn connection')
 local wg_show = io.popen("wg show wg dump")
 local current_peer_addr = nil

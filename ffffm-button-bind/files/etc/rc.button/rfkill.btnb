@@ -50,12 +50,13 @@ fi
 ;;
 6) # mesh-VPN OFF
 if [ "$ACTION" = "pressed" ]; then
-	pid="$(pgrep -f mesh-vpn-pause.sh|xargs)"
-	if [ "$pid" == "" ]; then
-		/lib/gluon/button-bind/mesh-vpn-pause.sh &
+	if [ -f /tmp/disable_vpn ]; then
+		rm /tmp/disable_vpn
 	else
-		kill -HUP "$pid"
-		/etc/init.d/fastd stop && /etc/init.d/fastd start
+		echo $(( $(date '+%s') + 18000 )) > /tmp/disable_vpn
+		ip link set nomaster dev mesh-vpn
+		ip link delete dev mesh-vpn
+		ip link delete dev wg
 	fi
 fi
 ;;
