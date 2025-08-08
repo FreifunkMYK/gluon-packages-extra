@@ -20,7 +20,6 @@ uci:section("wireguard", "wireguard", "mesh_vpn", {
 	ntp = site.mesh_vpn.wireguard.ntp(),
 	enabled = mesh_enabled,
 	privatekey = privkey,
-	api_endpoint = site.mesh_vpn.wireguard.api_endpoint(),
 })
 
 for name, peer in pairs(site.mesh_vpn.wireguard.peers()) do
