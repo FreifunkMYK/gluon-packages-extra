@@ -80,7 +80,7 @@ if current_peer_addr then
 
 	if fallback ~= nil then
 		log("trying ipv4 instead")
-		os.execute("gluon-wan wg set wg peer " .. fallback)
+		os.execute("gluon-wan-dns wg set wg peer " .. fallback)
 		os.exit(0)
 	end
 else
@@ -89,7 +89,7 @@ end
 
 log("reconnecting...")
 local ntp_server = uci:get("wireguard", "mesh_vpn", "ntp")
-os.execute("gluon-wan /usr/sbin/ntpd -n -N -S /usr/sbin/ntpd-hotplug -p " .. ntp_server .. " -q")
+os.execute("gluon-wan-dns /usr/sbin/ntpd -n -N -S /usr/sbin/ntpd-hotplug -p " .. ntp_server .. " -q")
 
 math.randomseed(os.time())
 
@@ -125,7 +125,7 @@ while peer == nil and #peers > 0 do
 	endpoint_name, endpoint_port = peer.endpoint:match("(.*):([0-9]+)$")
 
 	log("resolving " .. endpoint_name .. "...")
-	local nslookup = io.popen("gluon-wan nslookup " .. endpoint_name)
+	local nslookup = io.popen("gluon-wan-dns nslookup " .. endpoint_name)
 	local addr6 = nil
 	local addr4 = nil
 	for line in nslookup:lines() do
@@ -174,7 +174,7 @@ wg_set:close()
 os.execute("ip link set up dev wg")
 os.execute("ip address add " .. interface_linklocal() .. "/64 dev wg")
 
-os.execute("gluon-wan wg set wg peer " .. peer.publickey .. " persistent-keepalive 25 allowed-ips " .. peer.link_address .. "/128 endpoint " .. endpoint_ip .. ":" .. endpoint_port)
+os.execute("gluon-wan-dns wg set wg peer " .. peer.publickey .. " persistent-keepalive 25 allowed-ips " .. peer.link_address .. "/128 endpoint " .. endpoint_ip .. ":" .. endpoint_port)
 os.execute("ip6tables -I INPUT 1 -i wg -m udp -p udp --dport 8472 -j ACCEPT")
 
 local vxlan_id = tonumber(util.domain_seed_bytes("gluon-mesh-vpn-vxlan", 3), 16)
